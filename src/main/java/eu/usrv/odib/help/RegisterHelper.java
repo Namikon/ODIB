@@ -9,10 +9,4 @@ public class RegisterHelper {
 	{
 		GameRegistry.registerBlock(block, Reference.MODID + block.getUnlocalizedName().substring(5));
 	}
-
-	public static void registerItem(Item item)
-	{
-		GameRegistry.registerItem(item, Reference.MODID + item.getUnlocalizedName().substring(5));
-	}
-
 }

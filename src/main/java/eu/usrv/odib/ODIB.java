@@ -22,20 +22,22 @@ public class ODIB {
 		try 
 		{
 			_enabledBlocks = new BlocksEnabled(_config);
-			ModBlocks.init(_enabledBlocks);
 		}
 	    catch (Exception e)
 	    {
 	      FMLLog.log(org.apache.logging.log4j.Level.ERROR, e, "Yeeks, ODIB can't load it's configuration. What did you do??", new Object[0]);
 	      FMLLog.severe(e.getMessage(), new Object[0]);
 	    }
-	    finally
-	    {
-	      if (_config.hasChanged()) {
-	        _config.save();
-	      }
-	    }
 		
+		try 
+		{
+			ModBlocks.init(_enabledBlocks);
+		}
+	    catch (Exception e)
+	    {
+	      FMLLog.log(org.apache.logging.log4j.Level.ERROR, e, "Something went wrong while registering some blocks. I'm sorry :(", new Object[0]);
+	      FMLLog.severe(e.getMessage(), new Object[0]);
+	    }
 	}
 	
 	@Mod.EventHandler
