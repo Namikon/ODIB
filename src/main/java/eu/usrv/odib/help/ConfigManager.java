@@ -10,6 +10,8 @@ import org.apache.commons.io.FileUtils;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import eu.usrv.items.BlockBaseItem;
+import eu.usrv.odib.blocks.BlockBase;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
@@ -57,7 +59,7 @@ public class ConfigManager {
 				 {
 					 if (b.ConstructBlock())
 					 {
-						 RegisterHelper.registerBlock(b.getConstructedBlock());
+						 RegisterHelper.registerBlock(b.getConstructedBlock(), BlockBaseItem.class);
 						 OreDictionary.registerOre(b.getOreDictName(), b.getConstructedBlock());
 						 LogHelper.info("Constructed and registered block; " + b.getBlockInfo());
 					 }

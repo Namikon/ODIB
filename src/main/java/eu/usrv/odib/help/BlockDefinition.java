@@ -20,6 +20,7 @@ public class BlockDefinition {
 	private String HarvestTool;
 	private boolean Unbreakable;
 	private float Lightlevel;
+	private int[] PotionEffectIDs;
 	
 	// Java, y u no support properties o_o
 	public String getName() { return this.Name; }
@@ -31,6 +32,8 @@ public class BlockDefinition {
 	public String getHarvestTool() { return this.HarvestTool; }
 	public boolean getUnbreakable() { return this.Unbreakable; }
 	public float getLightlevel() { return this.Lightlevel; }
+	public int[] getPotionEffectIDs() { return this.PotionEffectIDs; }
+	
 	public BlockBase getConstructedBlock() { return this._constructedBlock; }
 	
 	public String getBlockInfo()
@@ -50,6 +53,9 @@ public class BlockDefinition {
 		this.Unbreakable = pConfigFile.getBoolean("Unbreakable", "main", false, "Well... yes... 'Bedrock'");
 		this.Lightlevel = pConfigFile.getFloat("Lightlevel", "main", 0F, 0F, 1F, "Glowstone anyone? Float value; Min: 0, Max: 1 (1=Sunlight)");
 
+		this.PotionEffectIDs = pConfigFile.get("PotionIDs", "special", new int[] {}, "The potion ID(s) to apply if any living entity has this Block in his/her inventory").getIntList();
+		
+		
 		// If, for any reason, the config file is invalid, save the default values to people get a correct one
 		pConfigFile.save();
 		
