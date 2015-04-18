@@ -1,4 +1,4 @@
-package eu.usrv.items;
+package eu.usrv.odib.items;
 
 import java.util.List;
 

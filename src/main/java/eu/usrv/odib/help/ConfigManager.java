@@ -3,15 +3,17 @@ package eu.usrv.odib.help;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import eu.usrv.items.BlockBaseItem;
 import eu.usrv.odib.blocks.BlockBase;
+import eu.usrv.odib.items.BlockBaseItem;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
@@ -21,7 +23,7 @@ public class ConfigManager {
 	private File _blocksconfigDir = null;
 	
 	private Configuration _mainConfig = null;
-	private List<BlockDefinition> _customBlocks = new ArrayList<BlockDefinition>();
+	private HashMap<String, BlockDefinition> _customBlocks = new HashMap<String, BlockDefinition>();
 	
 	FMLPreInitializationEvent _event = null;
 	
@@ -53,21 +55,21 @@ public class ConfigManager {
 	 {
 		 try
 		 {
-			 for (BlockDefinition b : _customBlocks)
+			 for (Entry<String, BlockDefinition> tEntry : _customBlocks.entrySet())
 			 {
 				 try
 				 {
-					 if (b.ConstructBlock())
+					 if (tEntry.getValue().ConstructBlock())
 					 {
-						 RegisterHelper.registerBlock(b.getConstructedBlock(), BlockBaseItem.class);
-						 OreDictionary.registerOre(b.getOreDictName(), b.getConstructedBlock());
-						 LogHelper.info("Constructed and registered block; " + b.getBlockInfo());
+						 RegisterHelper.registerBlock(tEntry.getValue().getConstructedBlock(), BlockBaseItem.class);
+						 OreDictionary.registerOre(tEntry.getValue().getOreDictName(), tEntry.getValue().getConstructedBlock());
+						 LogHelper.info("Constructed and registered block; " + tEntry.getValue().getBlockInfo());
 					 }
 					 
 				 }
 				 catch (Exception e)
 				 {
-					 LogHelper.error("Could not register custom block; " + b.getBlockInfo());
+					 LogHelper.error("Could not register custom block; " + tEntry.getValue().getBlockInfo());
 					 LogHelper.DumpStack(e);
 					 continue;
 				 }
@@ -102,10 +104,19 @@ public class ConfigManager {
 					 
 				      Configuration tmpCfgManager = new Configuration(tConfig);
 				      BlockDefinition tNewBlockDef = new BlockDefinition(tmpCfgManager);
-				      _customBlocks.add(tNewBlockDef);
-				      tNumBlocks++;
 				      
-				      LogHelper.info("New Block successfully loaded: [" + tNewBlockDef.getName() + "] OreDict registration as: [" + tNewBlockDef.getOreDictName() + "]");
+				      if (_customBlocks.containsKey(tNewBlockDef.getName()))
+				      {
+				    	  LogHelper.warn("Block will be ignored. There is already another Block with this ID: " + tNewBlockDef.getName());
+				    	  tNumErrors++;
+				    	  continue;
+				      }
+				      else
+				      {
+				    	  _customBlocks.put(tNewBlockDef.getName(), tNewBlockDef);
+				    	  tNumBlocks++;
+				    	  LogHelper.info("New Block successfully loaded: [" + tNewBlockDef.getName() + "] OreDict registration as: [" + tNewBlockDef.getOreDictName() + "]");
+				      }
 				 }
 				 catch (Exception e)
 				 {
