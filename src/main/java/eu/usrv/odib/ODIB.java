@@ -1,8 +1,10 @@
 package eu.usrv.odib;
 
+import java.io.File;
+
 import eu.usrv.odib.blocks.BlocksEnabled;
 import eu.usrv.odib.help.*;
-import eu.usrv.odib.init.ModBlocks;
+//import eu.usrv.odib.init.ModBlocks;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -12,31 +14,32 @@ import net.minecraftforge.common.config.Configuration;
 
 @Mod(modid = Reference.MODID, name = Reference.NAME, version = Reference.VERSION)
 public class ODIB {
-	private static Configuration _config = null;
-	private static BlocksEnabled _enabledBlocks = null;
+	private static ConfigManager _cfgManager = null;
 	
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event)
 	{
-		_config = new Configuration(event.getSuggestedConfigurationFile());
 		try 
 		{
-			_enabledBlocks = new BlocksEnabled(_config);
+			_cfgManager = new ConfigManager(event);
+			_cfgManager.InitConfigDirs();
+			_cfgManager.LoadBlockConfigs();
 		}
 	    catch (Exception e)
 	    {
-	      FMLLog.log(org.apache.logging.log4j.Level.ERROR, e, "Yeeks, ODIB can't load it's configuration. What did you do??", new Object[0]);
-	      FMLLog.severe(e.getMessage(), new Object[0]);
+	    	LogHelper.error("Yeeks, ODIB can't load it's configuration. What did you do??");
+	    	LogHelper.DumpStack(e);
 	    }
 		
 		try 
 		{
-			ModBlocks.init(_enabledBlocks);
+			_cfgManager.RegisterBlocks();
+			//ModBlocks.init(_enabledBlocks);
 		}
 	    catch (Exception e)
 	    {
-	      FMLLog.log(org.apache.logging.log4j.Level.ERROR, e, "Something went wrong while registering some blocks. I'm sorry :(", new Object[0]);
-	      FMLLog.severe(e.getMessage(), new Object[0]);
+	    	LogHelper.error("Something went wrong while registering blocks. I'm sorry :(");
+	    	LogHelper.DumpStack(e);
 	    }
 	}
 	

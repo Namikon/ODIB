@@ -1,4 +1,4 @@
-package eu.usrv.odib.init;
+/*package eu.usrv.odib.init;
 
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -41,4 +41,4 @@ public class ModBlocks {
     		}
     	}
     }
-}
+}*/
