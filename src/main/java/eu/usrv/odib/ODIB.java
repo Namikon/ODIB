@@ -2,9 +2,9 @@ package eu.usrv.odib;
 
 import java.io.File;
 
-import eu.usrv.odib.blocks.BlocksEnabled;
+import eu.usrv.odib.config.ConfigManager;
 import eu.usrv.odib.help.*;
-//import eu.usrv.odib.init.ModBlocks;
+import eu.usrv.odib.staticregistry.StaticRegistry;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -33,8 +33,8 @@ public class ODIB {
 		
 		try 
 		{
-			_cfgManager.RegisterBlocks();
-			//ModBlocks.init(_enabledBlocks);
+			if (!StaticRegistry.RegisterBlocks())
+				LogHelper.warn("Something went wrong with registering Blocks. I'm sorry...");
 		}
 	    catch (Exception e)
 	    {

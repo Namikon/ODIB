@@ -30,8 +30,11 @@ public class BlockBaseItem extends ItemBlock
     super.onUpdate(pItemStack, pWorld, pEntity, pSomeInt, pSomeBoolean);
     
     if ((pEntity instanceof EntityLivingBase)) { // Do we have a living entity?
+    	{
+    		//((EntityLivingBase)pEntity).addPotionEffect(new PotionEffect(, , ));
       // TODO: Add effects here, depending on some config files
   	  //((EntityLivingBase)pEntity).addPotionEffect(new PotionEffect(Potion.poison.getId(), 3, 10));
+    	}
   	  
     }
   }

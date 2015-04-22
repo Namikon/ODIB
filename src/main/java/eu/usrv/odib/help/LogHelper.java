@@ -11,7 +11,7 @@ public class LogHelper {
 	
 	 public static void log(Level logLevel, Object object)
 	    {
-	        FMLLog.log(Reference.MODID, logLevel, String.valueOf(object));
+	        FMLLog.log(Reference.MODID.toUpperCase(), logLevel, String.valueOf(object));
 	    }
 
 	    public static void all(Object object)

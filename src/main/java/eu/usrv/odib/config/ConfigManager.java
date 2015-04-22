@@ -1,4 +1,4 @@
-package eu.usrv.odib.help;
+package eu.usrv.odib.config;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,7 +13,11 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import eu.usrv.odib.blocks.BlockBase;
+import eu.usrv.odib.blocks.BlockDefinition;
+import eu.usrv.odib.help.LogHelper;
+import eu.usrv.odib.help.Reference;
 import eu.usrv.odib.items.BlockBaseItem;
+import eu.usrv.odib.staticregistry.StaticRegistry;
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
@@ -23,7 +27,7 @@ public class ConfigManager {
 	private File _blocksconfigDir = null;
 	
 	private Configuration _mainConfig = null;
-	private HashMap<String, BlockDefinition> _customBlocks = new HashMap<String, BlockDefinition>();
+	//private HashMap<String, BlockDefinition> _customBlocks = new HashMap<String, BlockDefinition>();
 	
 	FMLPreInitializationEvent _event = null;
 	
@@ -50,39 +54,7 @@ public class ConfigManager {
 	    }		    
 	 }
 	 
-	 // register all loaded custom blocks at forge
-	 public boolean RegisterBlocks()
-	 {
-		 try
-		 {
-			 for (Entry<String, BlockDefinition> tEntry : _customBlocks.entrySet())
-			 {
-				 try
-				 {
-					 if (tEntry.getValue().ConstructBlock())
-					 {
-						 RegisterHelper.registerBlock(tEntry.getValue().getConstructedBlock(), BlockBaseItem.class);
-						 OreDictionary.registerOre(tEntry.getValue().getOreDictName(), tEntry.getValue().getConstructedBlock());
-						 LogHelper.info("Constructed and registered block; " + tEntry.getValue().getBlockInfo());
-					 }
-					 
-				 }
-				 catch (Exception e)
-				 {
-					 LogHelper.error("Could not register custom block; " + tEntry.getValue().getBlockInfo());
-					 LogHelper.DumpStack(e);
-					 continue;
-				 }
-			 }
-			 return true;
-		 }
-		 catch (Exception e)
-		 {
-			 LogHelper.error("Something went (really!) wrong while registering blocks... Please report");
-			 LogHelper.DumpStack(e);
-			 return false;	
-		 }
-	 }
+
 	 
 	 public boolean LoadBlockConfigs()
 	 {
@@ -105,7 +77,7 @@ public class ConfigManager {
 				      Configuration tmpCfgManager = new Configuration(tConfig);
 				      BlockDefinition tNewBlockDef = new BlockDefinition(tmpCfgManager);
 				      
-				      if (_customBlocks.containsKey(tNewBlockDef.getName()))
+				      if (StaticRegistry.doesBlockDefExists(tNewBlockDef))
 				      {
 				    	  LogHelper.warn("Block will be ignored. There is already another Block with this ID: " + tNewBlockDef.getName());
 				    	  tNumErrors++;
@@ -113,7 +85,7 @@ public class ConfigManager {
 				      }
 				      else
 				      {
-				    	  _customBlocks.put(tNewBlockDef.getName(), tNewBlockDef);
+				    	  StaticRegistry.addBlockDefToRegistry(tNewBlockDef);
 				    	  tNumBlocks++;
 				    	  LogHelper.info("New Block successfully loaded: [" + tNewBlockDef.getName() + "] OreDict registration as: [" + tNewBlockDef.getOreDictName() + "]");
 				      }

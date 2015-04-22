@@ -1,12 +1,20 @@
-package eu.usrv.odib.help;
+package eu.usrv.odib.blocks;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.CheckedInputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
-import eu.usrv.odib.blocks.BlockBase;
 import eu.usrv.odib.enums.EN_BlockTypes;
+import eu.usrv.odib.enums.EN_SoundTypes;
+import eu.usrv.odib.enums.EnumTools;
+import eu.usrv.odib.help.IntHelper;
+import eu.usrv.odib.help.LogHelper;
+import eu.usrv.odib.help.Reference;
+import net.minecraft.block.Block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.common.config.Configuration;
 
 public class BlockDefinition {
@@ -23,9 +31,14 @@ public class BlockDefinition {
 	private String _mHarvestTool;
 	private boolean _mUnbreakable;
 	private float _mLightlevel;
-	private int[] _mPotionEffectIDs;
-	private Material _mMaterial;
+	private String[] _mPotionEffectDefs;
+	private Material _mMaterial = null;
 	private String _mStrMaterial;
+	private List<PotionEffect> _mPotionEffects = new ArrayList<PotionEffect>();
+	
+	private SoundType _mStepSoundType = null;
+	private String _mStepSoundTypeStr;
+	
 	
 	// Java, y u no support properties o_o
 	public String getName() { return this._mName; }
@@ -37,8 +50,9 @@ public class BlockDefinition {
 	public String getHarvestTool() { return this._mHarvestTool; }
 	public boolean getUnbreakable() { return this._mUnbreakable; }
 	public float getLightlevel() { return this._mLightlevel; }
-	public int[] getPotionEffectIDs() { return this._mPotionEffectIDs; }
+	//public String[] getPotionEffects() { return this._mPotionEffects; }
 	public Material getMaterial() { return this._mMaterial; }
+	public SoundType getStepSoundType() { return this._mStepSoundType; }
 	
 	public BlockBase getConstructedBlock() { return this._constructedBlock; }
 	
@@ -59,13 +73,15 @@ public class BlockDefinition {
 		this._mUnbreakable = pConfigFile.getBoolean("Unbreakable", "main", false, "Well... yes... 'Bedrock'");
 		this._mLightlevel = pConfigFile.getFloat("Lightlevel", "main", 0F, 0F, 1F, "Glowstone anyone? Float value; Min: 0, Max: 1 (1=Sunlight)");
 		this._mStrMaterial = pConfigFile.getString("Material", "main", "iron", "The Material your Block shall be made of. Description is following soon(tm)");
-
-		this._mPotionEffectIDs = pConfigFile.get("special", "PotionIDs", new int[] {}, "The potion ID(s) to apply if any living entity has this Block in his/her inventory").getIntList();
+		this._mStepSoundTypeStr = pConfigFile.getString("StepSound", "main", "soundTypeStone", "The sound when any entity is walking over this Block"); 
 		
+		this._mPotionEffectDefs = pConfigFile.getStringList("PotionEffects", "special", new String[] {}, "The potion ID(s) to apply if any living entity has this Block in his/her inventory. Format to use: <PotionID>|<Duration>|<Level>");
 		
-		// If, for any reason, the config file is invalid, save the default values to people get a correct one
+		// If, for any reason, the config file is invalid or missing some entries like from older versions,
+		// save it now to have it updated
 		pConfigFile.save();
 		
+		// Make sure everything is fine before we add it to our local registry
 		if (!CheckValidValues())
 			throw new Exception();
 	}
@@ -77,29 +93,123 @@ public class BlockDefinition {
 	private boolean CheckValidValues()
 	{
 		boolean tResult = true;
+		if (!CheckNoStringUnchanged())
+			tResult = false;
+
+		if (!CheckNoStringWhitespaced())
+			tResult = false; 
 		
-		if (this._mName == INVALID_DATA || this._mOreDictName == INVALID_DATA || this._mTextureName == INVALID_DATA || this._mHarvestTool == INVALID_DATA)
+		if (!CheckMaterialIsValid())
 			tResult = false;
 
-		if (StringUtils.containsWhitespace(this._mName) || StringUtils.containsWhitespace(this._mOreDictName) || StringUtils.containsWhitespace(this._mTextureName) || StringUtils.containsWhitespace(this._mHarvestTool))
+		if (!CheckStepSoundTypeValid())
 			tResult = false;
+		
+		if (!CheckPotionEffectsValid())
+			tResult = false;
+		
+		return tResult;
+	}
 
+	// Check potion Effects for syntax and valid IDs. PotionEffect is created once to verify duration and level values, to
+	// prevent crashes later while ingame
+	private boolean CheckPotionEffectsValid()
+	{
+		for (String teffect : _mPotionEffectDefs)
+		{
+			if (teffect.split("|").length != 3) // invalid syntax
+			{
+				LogHelper.warn("Invalid PotionEffectString Syntax: " + teffect + " Ignoring entry.");
+				return false;
+			}
+
+			boolean tParseOk = false;
+			if (IntHelper.tryParse(teffect.split("|")[0]))
+				if(IntHelper.tryParse(teffect.split("|")[1]))
+					if(IntHelper.tryParse(teffect.split("|")[2]))
+						tParseOk = true;
+					
+			if (!tParseOk)
+			{
+				LogHelper.warn("Potion setting [" + teffect + "] is invalid. Please check your syntax. Ignoring entry");
+				return false;
+			}
+			else
+			{
+				int tPotionID = Integer.parseInt(teffect.split("|")[0]);
+				int tDuration = Integer.parseInt(teffect.split("|")[1]);
+				int tLevel = Integer.parseInt(teffect.split("|")[2]);
+			
+				try
+				{
+					PotionEffect tEff = new PotionEffect(tPotionID, tDuration, tLevel);
+					LogHelper.info("Found PotionEffect config; PotionID:[" + tPotionID + "]:[" + tEff.getEffectName() + "] Duration:[" + tDuration + "] Level:[" + tLevel + "]");
+					_mPotionEffects.add(tEff);
+				}
+				catch(Exception e)
+				{
+					LogHelper.warn("Invalid PotionID configuration found. PotionID [" + tPotionID + "] could not be found. Ignoring entry");
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	// Check if given Stepsound is valid. Only vanilla sounds so far. TODO: Add custom sounds
+	private boolean CheckStepSoundTypeValid()
+	{
+		if (EnumTools.CheckIfStringIsValidEnum(this._mStepSoundTypeStr, EN_SoundTypes.class))
+		{
+			this._mStepSoundType = EnumTools.ParseSoundTypeClassFromString(this._mStepSoundTypeStr);
+			if (this._mStepSoundType == null)
+			{
+				LogHelper.warn("Something went wrong. SoundType is known but cannot be casted; Please report: [" + this._mStepSoundTypeStr + "]");
+				return false;
+			}
+		} else {
+			LogHelper.warn("Block config is invalid. There is no such SoundType: [" + this._mStepSoundTypeStr + "]");
+			return false;
+		}
+		return true;
+		
+	}
+	
+	// Check if given Material is valid.
+	private boolean CheckMaterialIsValid()
+	{
 		if (EnumTools.CheckIfStringIsValidEnum(this._mStrMaterial, EN_BlockTypes.class))
 		{
 			this._mMaterial = EnumTools.ParseMaterialClassFromString(this._mStrMaterial);
 			if (this._mMaterial == null)
 			{
 				LogHelper.warn("Something went wrong. Material is known but cannot be casted; Please report: [" + this._mStrMaterial + "]");
-				tResult = false;
+				return false;
 			}
 		} else {
 			LogHelper.warn("Block config is invalid. There is no such Material: [" + this._mStrMaterial + "]");
-			tResult = false;
+			return false;
 		}
-		
-		return tResult;
+		return true;
 	}
 	
+	// Well.. no whitespaces obviously
+	private boolean CheckNoStringWhitespaced()
+	{
+		if (StringUtils.containsWhitespace(this._mName) || StringUtils.containsWhitespace(this._mOreDictName) || StringUtils.containsWhitespace(this._mTextureName) || StringUtils.containsWhitespace(this._mHarvestTool))
+			return false;
+		else
+			return true;
+	}
+	
+	// For lazy people :P
+	private boolean CheckNoStringUnchanged()
+	{
+		if (this._mName == INVALID_DATA || this._mOreDictName == INVALID_DATA || this._mTextureName == INVALID_DATA || this._mHarvestTool == INVALID_DATA)
+			return false;
+		else
+			return true;
+	}
 	
 	
 	// Construct the block
@@ -107,11 +217,12 @@ public class BlockDefinition {
 	{
 		try
 		{
-			_constructedBlock = new BlockBase(this._mMaterial); // Iron for now. TODO: make this configureable!
+			_constructedBlock = new BlockBase(this._mMaterial); 
 			
 			_constructedBlock.setLightLevel(this._mLightlevel);
 			_constructedBlock.setBlockTextureName(Reference.MODID + ":" + this._mTextureName);
 			_constructedBlock.setBlockName(this._mName);
+			_constructedBlock.setStepSound(_mStepSoundType);
 			
 			if (this.getUnbreakable())
 				_constructedBlock.setBlockUnbreakable();
