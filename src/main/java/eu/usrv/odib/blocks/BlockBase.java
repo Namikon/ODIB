@@ -16,6 +16,11 @@ import net.minecraft.world.World;
 import eu.usrv.odib.help.Reference;
 import eu.usrv.odib.tabs.ModTabs;
 
+/**
+ * Blockbase. All your blocks belong to us! Super generic block-class
+ * @author Namikon
+ *
+ */
 public class BlockBase extends Block {
 	  public BlockBase(Material pMaterial) {
 		  super(pMaterial);

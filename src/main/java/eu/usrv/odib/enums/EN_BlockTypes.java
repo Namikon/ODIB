@@ -7,6 +7,11 @@ import net.minecraft.block.material.MaterialLogic;
 import net.minecraft.block.material.MaterialPortal;
 import net.minecraft.block.material.MaterialTransparent;
 
+/**
+ * Enum of all valid (vanilla) Blocktypes
+ * @author Namikon
+ *
+ */
 public enum EN_BlockTypes {
 	air, 
 	grass, 

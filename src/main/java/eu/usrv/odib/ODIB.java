@@ -12,6 +12,10 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.common.config.Configuration;
 
+/**
+ * @author Namikon
+ *
+ */
 @Mod(modid = Reference.MODID, name = Reference.NAME, version = Reference.VERSION)
 public class ODIB {
 	private static ConfigManager _cfgManager = null;

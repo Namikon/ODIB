@@ -9,14 +9,20 @@ import org.apache.commons.lang3.StringUtils;
 import eu.usrv.odib.enums.EN_BlockTypes;
 import eu.usrv.odib.enums.EN_SoundTypes;
 import eu.usrv.odib.enums.EnumTools;
+import eu.usrv.odib.gameregistry.PotionIDHelper;
 import eu.usrv.odib.help.IntHelper;
 import eu.usrv.odib.help.LogHelper;
 import eu.usrv.odib.help.Reference;
 import net.minecraft.block.Block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.common.config.Configuration;
 
+/**
+ * BlockDefinition class. Code-representation of the bconf-files
+ * @author Namikon
+ */
 public class BlockDefinition {
 	private static final String INVALID_DATA = "YUNOCHANGEME";
 	
@@ -50,12 +56,17 @@ public class BlockDefinition {
 	public String getHarvestTool() { return this._mHarvestTool; }
 	public boolean getUnbreakable() { return this._mUnbreakable; }
 	public float getLightlevel() { return this._mLightlevel; }
-	//public String[] getPotionEffects() { return this._mPotionEffects; }
 	public Material getMaterial() { return this._mMaterial; }
 	public SoundType getStepSoundType() { return this._mStepSoundType; }
 	
+	public List<PotionEffect> getPotionEffects() { return this._mPotionEffects; }
+	
 	public BlockBase getConstructedBlock() { return this._constructedBlock; }
 	
+	
+	/**
+	 * @return Some (useless) function to print on the console...
+	 */
 	public String getBlockInfo()
 	{
 		return "Name: [" + this._mName + "] OreDict: [" + this._mOreDictName + "]"; 
@@ -86,10 +97,10 @@ public class BlockDefinition {
 			throw new Exception();
 	}
 	
-	// Make sure we have a valid block here
-	// - No whitespaces
-	// - All values "no default"
-	// - Some more failchecks to be added soon (tm)
+	/**
+	 * Make sure we have a valid block here
+	 * @return
+	 */
 	private boolean CheckValidValues()
 	{
 		boolean tResult = true;
@@ -111,8 +122,10 @@ public class BlockDefinition {
 		return tResult;
 	}
 
-	// Check potion Effects for syntax and valid IDs. PotionEffect is created once to verify duration and level values, to
-	// prevent crashes later while ingame
+	/**
+	 * Check potion Effects for syntax and valid IDs. PotionEffect is created once to verify duration and level values, to prevent crashes later while ingame
+	 * @return
+	 */
 	private boolean CheckPotionEffectsValid()
 	{
 		for (String teffect : _mPotionEffectDefs)
@@ -142,9 +155,13 @@ public class BlockDefinition {
 			
 				try
 				{
-					PotionEffect tEff = new PotionEffect(tPotionID, tDuration, tLevel);
-					LogHelper.info("Found PotionEffect config; PotionID:[" + tPotionID + "]:[" + tEff.getEffectName() + "] Duration:[" + tDuration + "] Level:[" + tLevel + "]");
-					_mPotionEffects.add(tEff);
+					Potion tP = PotionIDHelper.getPotionIfValid(tPotionID);
+					if (tP != null)
+					{
+						PotionEffect tEff = new PotionEffect(tPotionID, tDuration, tLevel);
+						LogHelper.info("Found PotionEffect config; PotionID:[" + tPotionID + "]:[" + tP.getName() + "] Duration:[" + tDuration + "] Level:[" + tLevel + "]");
+						_mPotionEffects.add(tEff);
+					}
 				}
 				catch(Exception e)
 				{
@@ -156,7 +173,10 @@ public class BlockDefinition {
 		return true;
 	}
 	
-	// Check if given Stepsound is valid. Only vanilla sounds so far. TODO: Add custom sounds
+	/**
+	 * Check if given Stepsound is valid. Only vanilla sounds so far. TODO: Add custom sounds
+	 * @return
+	 */
 	private boolean CheckStepSoundTypeValid()
 	{
 		if (EnumTools.CheckIfStringIsValidEnum(this._mStepSoundTypeStr, EN_SoundTypes.class))
@@ -175,7 +195,10 @@ public class BlockDefinition {
 		
 	}
 	
-	// Check if given Material is valid.
+	/**
+	 * Check if given Material is valid.
+	 * @return
+	 */
 	private boolean CheckMaterialIsValid()
 	{
 		if (EnumTools.CheckIfStringIsValidEnum(this._mStrMaterial, EN_BlockTypes.class))
@@ -193,7 +216,10 @@ public class BlockDefinition {
 		return true;
 	}
 	
-	// Well.. no whitespaces obviously
+	/**
+	 * Well.. Check for whitespaces obviously
+	 * @return
+	 */
 	private boolean CheckNoStringWhitespaced()
 	{
 		if (StringUtils.containsWhitespace(this._mName) || StringUtils.containsWhitespace(this._mOreDictName) || StringUtils.containsWhitespace(this._mTextureName) || StringUtils.containsWhitespace(this._mHarvestTool))
@@ -202,7 +228,10 @@ public class BlockDefinition {
 			return true;
 	}
 	
-	// For lazy people :P
+	/**
+	 * For lazy people who do not read/edit config files
+	 * @return
+	 */
 	private boolean CheckNoStringUnchanged()
 	{
 		if (this._mName == INVALID_DATA || this._mOreDictName == INVALID_DATA || this._mTextureName == INVALID_DATA || this._mHarvestTool == INVALID_DATA)
@@ -212,7 +241,10 @@ public class BlockDefinition {
 	}
 	
 	
-	// Construct the block
+	/**
+	 * Try to construct the block
+	 * @return true or false if the construction of the block with given parameters (via config) was successful
+	 */
 	public boolean ConstructBlock()
 	{
 		try

@@ -22,6 +22,10 @@ import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
 
+/**
+ * Le config class to read/setup config files and folders
+ * @author Namikon
+ */
 public class ConfigManager {
 	private File _mainconfigDir = null;
 	private File _blocksconfigDir = null;
@@ -35,7 +39,10 @@ public class ConfigManager {
 		 _event = pEvent;
 	 }
 	 
-	 public void InitConfigDirs()
+	 /**
+	 * Search for required config directories and create them if they can't be found 
+	 */
+	public void InitConfigDirs()
 	 {
 		 LogHelper.info("Checking/creating config folders");
 		 
@@ -56,7 +63,11 @@ public class ConfigManager {
 	 
 
 	 
-	 public boolean LoadBlockConfigs()
+	 /**
+	  * Look for bconf files and load them.
+	 * @return false if something really nasty happend
+	 */
+	public boolean LoadBlockConfigs()
 	 {
 		 LogHelper.info("Block-Definition loading begins --now--");
 		 try
